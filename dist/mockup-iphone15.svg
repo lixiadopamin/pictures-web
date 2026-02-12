@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 390 844">
+  <defs>
+    <linearGradient id="fg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0" stop-color="#2c2c2e"/>
+      <stop offset="1" stop-color="#1c1c1e"/>
+    </linearGradient>
+  </defs>
+  <!-- Frame with transparent screen cutout (fill-rule evenodd) -->
+  <path fill="url(#fg)" fill-rule="evenodd" stroke="#3a3a3c" stroke-width="2" d="
+    M 54 12 L 336 12 Q 390 12 390 66 L 390 778 Q 390 832 336 832 L 54 832 Q 12 832 12 790 L 12 54 Q 12 12 54 12 Z
+    M 26 58 L 364 58 L 364 790 L 26 790 Z
+  "/>
+  <!-- Dynamic Island -->
+  <rect x="140" y="34" width="110" height="32" rx="16" fill="#000"/>
+</svg>

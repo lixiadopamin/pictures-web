@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="图片工具箱 - 上架图生成、样机、图片裁剪压缩、格式转换、拼图">
+  <title>图片工具箱 - 上架图·裁剪·压缩·转换·拼图</title>
+  <style>
+    body.in-iframe .app-header,
+    body.in-iframe .module-nav { display: none !important; }
+    body.in-iframe .app-container { padding-top: 16px; }
+    body.in-iframe .module-content { padding: 0; }
+  </style>
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="/listing.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <script>
+    if (window.self !== window.top) document.body.classList.add('in-iframe');
+  </script>
+  <main class="app-container">
+
+    <!-- 页面头部 -->
+    <header class="app-header">
+      <h1 class="app-title">图片工具箱</h1>
+      <p class="app-subtitle">裁剪、压缩、格式转换、拼图，一站式在线图片处理</p>
+    </header>
+
+    <!-- 功能模块入口：4 个卡片 -->
+    <nav class="module-nav" aria-label="功能模块">
+      <button type="button" class="module-card" data-module="crop" aria-pressed="false">
+        <span class="module-icon" aria-hidden="true">✂️</span>
+        <span class="module-name">图片裁剪</span>
+        <span class="module-desc">裁切·比例</span>
+      </button>
+      <button type="button" class="module-card active" data-module="compress" aria-pressed="true">
+        <span class="module-icon" aria-hidden="true">🗜️</span>
+        <span class="module-name">图片压缩</span>
+        <span class="module-desc">减体积·优化大小</span>
+      </button>
+      <button type="button" class="module-card" data-module="convert" aria-pressed="false">
+        <span class="module-icon" aria-hidden="true">🔄</span>
+        <span class="module-name">格式转换</span>
+        <span class="module-desc">JPG↔PNG</span>
+      </button>
+      <button type="button" class="module-card" data-module="collage" aria-pressed="false">
+        <span class="module-icon" aria-hidden="true">🧩</span>
+        <span class="module-name">图片拼图</span>
+        <span class="module-desc">竖屏·横屏·宫格</span>
+      </button>
+      <button type="button" class="module-card" data-module="listing" aria-pressed="false">
+        <span class="module-icon" aria-hidden="true">📱</span>
+        <span class="module-name">上架图生成</span>
+        <span class="module-desc">样机·文案·App Store</span>
+      </button>
+    </nav>
+
+    <!-- 模块内容区：根据选中的模块显示对应内容 -->
+    <div class="module-content">
+
+      <!-- 模块：图片裁剪 -->
+      <section class="module-panel" id="panelCrop" data-module="crop" hidden>
+        <section class="upload-section crop-upload" id="cropUploadSection">
+          <div class="upload-zone" id="cropUploadZone">
+            <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="17 8 12 3 7 8"/>
+              <line x1="12" y1="3" x2="12" y2="15"/>
+            </svg>
+            <p class="upload-hint">拖拽或点击上传图片</p>
+            <p class="upload-formats">支持 PNG、JPG、JPEG</p>
+            <input type="file" id="cropFileInput" accept="image/png,image/jpeg,image/jpg" class="upload-input" hidden>
+          </div>
+        </section>
+        <section class="crop-editor" id="cropEditorSection" hidden>
+          <div class="ratio-buttons" id="ratioButtons">
+            <span class="control-label">裁剪比例</span>
+            <div class="ratio-group">
+              <button type="button" class="ratio-btn active" data-ratio="1:1">1:1</button>
+              <button type="button" class="ratio-btn" data-ratio="3:4">3:4</button>
+              <button type="button" class="ratio-btn" data-ratio="4:3">4:3</button>
+              <button type="button" class="ratio-btn" data-ratio="3:5">3:5</button>
+              <button type="button" class="ratio-btn" data-ratio="5:3">5:3</button>
+              <button type="button" class="ratio-btn" data-ratio="9:16">9:16</button>
+              <button type="button" class="ratio-btn" data-ratio="16:9">16:9</button>
+            </div>
+          </div>
+          <div class="crop-canvas-wrap">
+            <canvas id="cropCanvas"></canvas>
+          </div>
+          <div class="control-buttons" style="margin-top:16px;">
+            <button type="button" class="btn btn-primary" id="cropConfirmBtn">确认裁剪</button>
+            <button type="button" class="btn btn-secondary" id="cropResetBtn">重新上传</button>
+          </div>
+        </section>
+        <section class="crop-result" id="cropResultSection" hidden>
+          <div class="preview-grid">
+            <article class="preview-card">
+              <h3 class="preview-card-title">原始图片</h3>
+              <div class="preview-image-wrap">
+                <img id="cropOriginalPreview" class="preview-image" src="" alt="原始图片" hidden>
+              </div>
+              <p class="file-size" id="cropOriginalSize">--</p>
+            </article>
+            <article class="preview-card">
+              <h3 class="preview-card-title">裁剪后</h3>
+              <div class="preview-image-wrap">
+                <img id="cropResultPreview" class="preview-image" src="" alt="裁剪后" hidden>
+              </div>
+              <p class="file-size" id="cropResultSize">--</p>
+            </article>
+          </div>
+          <div class="crop-result-actions">
+            <button type="button" class="btn btn-download" id="cropDownloadBtn">
+              <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="7 10 12 15 17 10"/>
+                <line x1="12" y1="15" x2="12" y2="3"/>
+              </svg>
+              下载裁剪图片
+            </button>
+            <div class="crop-result-secondary">
+              <button type="button" class="btn btn-secondary" id="cropReCropBtn">重新裁剪</button>
+              <button type="button" class="btn btn-secondary" id="cropReUploadBtn">重新上传</button>
+            </div>
+          </div>
+        </section>
+      </section>
+
+      <!-- 模块：图片压缩（已实现） -->
+      <section class="module-panel active" id="panelCompress" data-module="compress">
+        <section class="upload-section" id="uploadSection" aria-label="图片上传区域">
+          <div class="upload-zone" id="uploadZone">
+            <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="17 8 12 3 7 8"/>
+              <line x1="12" y1="3" x2="12" y2="15"/>
+            </svg>
+            <p class="upload-hint">拖拽图片到此处，或 <span class="upload-click">点击选择</span></p>
+            <p class="upload-formats">支持 PNG、JPG、JPEG 格式</p>
+            <input type="file" id="fileInput" accept="image/png,image/jpeg,image/jpg" class="upload-input" hidden>
+          </div>
+        </section>
+
+        <section class="controls-section" id="controlsSection" hidden aria-label="压缩控制">
+          <div class="controls-wrapper">
+            <div class="control-group">
+              <label for="qualitySlider" class="control-label">压缩质量</label>
+              <div class="slider-row">
+                <input type="range" id="qualitySlider" class="quality-slider" min="10" max="100" value="80" aria-label="压缩质量">
+                <span class="quality-value" id="qualityValue">80%</span>
+              </div>
+            </div>
+            <div class="control-buttons">
+              <button type="button" class="btn btn-primary" id="compressBtn">压缩图片</button>
+              <button type="button" class="btn btn-secondary" id="resetBtn">重新上传</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="preview-section" id="previewSection" hidden aria-label="图片预览">
+          <div class="preview-grid">
+            <article class="preview-card">
+              <h3 class="preview-card-title">原始图片</h3>
+              <div class="preview-image-wrap">
+                <img id="originalPreview" class="preview-image" src="" alt="原始图片预览" hidden>
+              </div>
+              <p class="file-size" id="originalSize">--</p>
+            </article>
+            <article class="preview-card">
+              <h3 class="preview-card-title">压缩后</h3>
+              <div class="preview-image-wrap">
+                <img id="compressedPreview" class="preview-image" src="" alt="压缩后图片预览" hidden>
+              </div>
+              <p class="file-size" id="compressedSize">--</p>
+            </article>
+          </div>
+          <p class="compression-ratio" id="compressionRatio" hidden></p>
+        </section>
+
+        <section class="download-section" id="downloadSection" hidden aria-label="下载压缩图片">
+          <button type="button" class="btn btn-download" id="downloadBtn">
+            <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="7 10 12 15 17 10"/>
+              <line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+            下载压缩图片
+          </button>
+        </section>
+      </section>
+
+      <!-- 模块：格式转换 -->
+      <section class="module-panel" id="panelConvert" data-module="convert" hidden>
+        <section class="upload-section" id="convertUploadSection">
+          <div class="upload-zone" id="convertUploadZone">
+            <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="17 8 12 3 7 8"/>
+              <line x1="12" y1="3" x2="12" y2="15"/>
+            </svg>
+            <p class="upload-hint">拖拽或点击上传图片</p>
+            <p class="upload-formats">支持 JPG、PNG、SVG、PDF</p>
+            <input type="file" id="convertFileInput" accept="image/png,image/jpeg,image/jpg,image/svg+xml,.svg,application/pdf,.pdf" class="upload-input" hidden>
+          </div>
+        </section>
+        <section class="convert-controls" id="convertControlsSection" hidden>
+          <div class="controls-wrapper">
+            <div class="control-group">
+              <label class="control-label">转换为格式</label>
+              <div class="format-buttons">
+                <button type="button" class="format-btn" data-format="jpg">JPG</button>
+                <button type="button" class="format-btn" data-format="png">PNG</button>
+                <button type="button" class="format-btn" data-format="svg">SVG</button>
+                <button type="button" class="format-btn" data-format="pdf">PDF</button>
+              </div>
+            </div>
+            <div class="preview-image-wrap" style="margin-top:16px;">
+              <img id="convertPreview" class="preview-image" src="" alt="预览" hidden>
+            </div>
+            <div class="control-buttons" style="margin-top:16px;">
+              <button type="button" class="btn btn-primary" id="convertBtn">转换并下载</button>
+              <button type="button" class="btn btn-secondary" id="convertResetBtn">重新上传</button>
+            </div>
+          </div>
+        </section>
+      </section>
+
+      <!-- 模块：图片拼图 -->
+      <section class="module-panel" id="panelCollage" data-module="collage" hidden>
+        <section class="upload-section collage-upload" id="collageUploadSection">
+          <div class="upload-zone collage-zone" id="collageUploadZone">
+            <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <rect x="3" y="3" width="7" height="7"/>
+              <rect x="14" y="3" width="7" height="7"/>
+              <rect x="3" y="14" width="7" height="7"/>
+              <rect x="14" y="14" width="7" height="7"/>
+            </svg>
+            <p class="upload-hint">拖拽或点击上传 2～4 张图片</p>
+            <p class="upload-formats">支持 PNG、JPG，最多 4 张</p>
+            <input type="file" id="collageFileInput" accept="image/png,image/jpeg,image/jpg" class="upload-input" multiple hidden>
+          </div>
+          <div class="collage-thumbnails" id="collageThumbnails"></div>
+        </section>
+        <section class="collage-controls" id="collageControlsSection" hidden>
+          <div class="controls-wrapper">
+            <div class="control-group">
+              <label class="control-label">拼图布局</label>
+              <div class="layout-buttons">
+                <button type="button" class="layout-btn active" data-layout="vertical" title="竖版">
+                  <span class="layout-icon">📱</span>
+                  <span>竖版</span>
+                </button>
+                <button type="button" class="layout-btn" data-layout="horizontal" title="横版">
+                  <span class="layout-icon">🖥️</span>
+                  <span>横版</span>
+                </button>
+                <button type="button" class="layout-btn" data-layout="grid" title="宫格">
+                  <span class="layout-icon">⊞</span>
+                  <span>宫格</span>
+                </button>
+              </div>
+            </div>
+            <div class="collage-preview-wrap">
+              <canvas id="collageCanvas"></canvas>
+            </div>
+            <div class="control-buttons" style="margin-top:16px;">
+              <button type="button" class="btn btn-primary" id="collageDownloadBtn">下载拼图</button>
+              <button type="button" class="btn btn-secondary" id="collageResetBtn">重新选择</button>
+            </div>
+          </div>
+        </section>
+      </section>
+
+      <!-- 模块：上架图生成器 -->
+      <section class="module-panel listing-panel" id="panelListing" data-module="listing" hidden>
+        <div class="listing-layout">
+          <aside class="listing-sidebar-left">
+            <span class="control-label">模板</span>
+            <div class="template-thumbs" id="listingTemplates"></div>
+          </aside>
+          <div class="listing-canvas-area">
+            <div class="listing-canvas-wrap">
+              <canvas id="listingCanvas"></canvas>
+            </div>
+            <div class="listing-upload-area">
+              <p class="upload-hint">上传 App 截图（将填充进样机）</p>
+              <input type="file" id="listingScreenshotInput" accept="image/*" hidden>
+              <button type="button" class="btn btn-secondary" id="listingUploadBtn">选择截图</button>
+            </div>
+          </div>
+          <aside class="listing-sidebar-right">
+            <div class="control-group">
+              <label class="control-label">主标题</label>
+              <input type="text" id="listingTitleInput" class="text-input" placeholder="App 名称" maxlength="30">
+            </div>
+            <div class="control-group">
+              <label class="control-label">副标题</label>
+              <input type="text" id="listingSubtitleInput" class="text-input" placeholder="一句描述" maxlength="50">
+            </div>
+            <div class="control-group">
+              <label class="control-label">样机</label>
+              <select id="listingMockupSelect" class="select-input">
+                <option value="iphone-15-pro">iPhone 15 Pro</option>
+                <option value="pixel-8">Pixel 8</option>
+                <option value="macbook">MacBook</option>
+              </select>
+            </div>
+            <div class="control-group">
+              <label class="control-label">背景</label>
+              <div class="bg-preset-thumbs" id="listingBgPresets"></div>
+            </div>
+            <div class="control-group">
+              <label class="control-label">输出尺寸</label>
+              <select id="listingSizeSelect" class="select-input"></select>
+            </div>
+            <button type="button" class="btn btn-download" id="listingDownloadBtn">导出图片</button>
+          </aside>
+        </div>
+      </section>
+
+    </div>
+
+  </main>
+
+  <script src="/listing-state.js"></script>
+  <script src="/listing-render.js"></script>
+  <script src="/listing-ui.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script>
+    if (typeof pdfjsLib !== 'undefined') {
+      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    }
+  </script>
+  <script src="/script.js"></script>
+</body>
+</html>

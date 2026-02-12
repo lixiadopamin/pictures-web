@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 800">
+  <defs>
+    <linearGradient id="android-fg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0" stop-color="#1a1a1c"/>
+      <stop offset="1" stop-color="#0d0d0f"/>
+    </linearGradient>
+  </defs>
+  <!-- ‰S7:Ò¹FOU:ßBz -->
+  <path fill="url(#android-fg)" fill-rule="evenodd" stroke="#2a2a2c" stroke-width="2" d="
+    M 24 12 L 336 12 Q 360 12 360 36 L 360 764 Q 360 788 336 788 L 24 788 Q 0 788 0 764 L 0 36 Q 0 12 24 12 Z
+    M 28 52 L 332 52 L 332 748 L 28 748 Z
+  "/>
+  <!-- vèDÏ4/,R:ß -->
+  <rect x="158" y="28" width="44" height="8" rx="4" fill="#0a0a0c"/>
+</svg>

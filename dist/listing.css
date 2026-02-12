@@ -1,0 +1,165 @@
+/* 上架图生成器 - 三栏布局 */
+.listing-panel .listing-layout {
+  display: grid;
+  grid-template-columns: 160px 1fr 220px;
+  gap: 24px;
+  min-height: 480px;
+}
+
+.listing-sidebar-left {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.template-thumbs {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.template-thumb {
+  width: 100%;
+  aspect-ratio: 9/16;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  overflow: hidden;
+  background: var(--color-bg-elevated);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+  transition: border-color var(--transition-fast);
+}
+
+.template-thumb:hover {
+  border-color: rgba(0, 113, 227, 0.5);
+}
+
+.template-thumb.active {
+  border-color: var(--color-primary);
+  background: rgba(0, 113, 227, 0.08);
+}
+
+.listing-canvas-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  background: var(--color-bg-elevated);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+}
+
+.listing-canvas-wrap {
+  max-width: 100%;
+  overflow: auto;
+  border-radius: var(--radius-md);
+  background: #1a1a1a;
+}
+
+#listingCanvas {
+  display: block;
+  max-width: 100%;
+}
+
+.listing-upload-area {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.listing-sidebar-right {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.text-input, .select-input {
+  width: 100%;
+  padding: 10px 12px;
+  font-size: 0.9375rem;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-family: inherit;
+}
+
+.text-input:focus, .select-input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+.bg-preset-thumbs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+
+.bg-preset-thumb {
+  width: 100%;
+  aspect-ratio: 1;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: border-color var(--transition-fast);
+}
+
+.bg-preset-thumb.active {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px rgba(0, 113, 227, 0.3);
+}
+
+/* 证件照·图标 */
+.idphoto-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.idphoto-content .upload-section,
+.favicon-content .upload-section {
+  margin-bottom: 20px;
+}
+
+.bg-color-btns {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.bg-color-btn {
+  width: 36px;
+  height: 36px;
+  border: 2px solid var(--color-border);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: transform var(--transition-fast);
+}
+
+.bg-color-btn.active {
+  border-color: var(--color-primary);
+  transform: scale(1.1);
+}
+
+.favicon-size-btns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+@media (max-width: 900px) {
+  .listing-panel .listing-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .listing-sidebar-left {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  .template-thumb {
+    width: 80px;
+  }
+}
