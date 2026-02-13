@@ -35,13 +35,13 @@
 
   if (window.location.hash) {
     var m = window.location.hash.slice(1);
-    if (['crop','compress','convert','collage','listing','idphoto'].indexOf(m) >= 0) {
+    if (['crop','compress','convert','collage','listing'].indexOf(m) >= 0) {
       switchModule(m);
     }
   }
   window.addEventListener('hashchange', function () {
     var m = window.location.hash.slice(1);
-    if (m && ['crop','compress','convert','collage','listing','idphoto'].indexOf(m) >= 0) {
+    if (m && ['crop','compress','convert','collage','listing'].indexOf(m) >= 0) {
       switchModule(m);
     }
   });
@@ -104,10 +104,6 @@
   const RATIOS = { '1:1': 1, '3:4': 3/4, '4:3': 4/3, '3:5': 3/5, '5:3': 5/3, '9:16': 9/16, '16:9': 16/9 };
 
   let cropImg = null;
-  let cropScenario = 'idphoto';      // 'idphoto' | 'store'
-  let cropOutputW = 0;               // 应用商店场景下输出宽高，0 表示按原裁剪尺寸
-  let cropOutputH = 0;
-  let cropStorePresetId = null;
   let cropFile = null;
   let cropData = { x: 0, y: 0, w: 0, h: 0, ratio: 1 };
   let cropScale = 1;
@@ -171,13 +167,7 @@
 
   function updateCropBox() {
     if (!cropImg) return;
-    let r;
-    if (cropScenario === 'store' && cropStorePresetId && typeof getAllStorePresets === 'function') {
-      const preset = getStorePreset(cropStorePresetId);
-      r = preset ? preset.w / preset.h : 1;
-    } else {
-      r = parseRatio(document.querySelector('.ratio-btn.active')?.dataset?.ratio || '1:1');
-    }
+    const r = parseRatio(document.querySelector('.ratio-btn.active')?.dataset?.ratio || '1:1');
     cropData.ratio = r;
     const rect = computeCropRect(cropImg.width, cropImg.height, r);
     cropData.x = rect.x;
@@ -190,12 +180,8 @@
   function confirmCrop() {
     if (!cropImg || !cropFile) return;
     if (cropOriginalPreview.src && cropOriginalPreview.src.startsWith('blob:')) revokeObjectURL(cropOriginalPreview.src);
-    let outW = cropData.w;
-    let outH = cropData.h;
-    if (cropScenario === 'store' && cropOutputW > 0 && cropOutputH > 0) {
-      outW = cropOutputW;
-      outH = cropOutputH;
-    }
+    const outW = cropData.w;
+    const outH = cropData.h;
     const c = document.createElement('canvas');
     c.width = outW;
     c.height = outH;
@@ -228,9 +214,6 @@
     cropFile = null;
     cropResultBlob = null;
     cropResultUrl = null;
-    cropOutputW = 0;
-    cropOutputH = 0;
-    cropStorePresetId = null;
     cropFileInput.value = '';
   }
 
@@ -247,58 +230,6 @@
     updateCropBox();
   }
 
-  /* 场景切换 */
-  const ratioButtons = document.getElementById('ratioButtons');
-  const storePresets = document.getElementById('storePresets');
-  const storePresetGroup = document.getElementById('storePresetGroup');
-
-  document.querySelectorAll('.scenario-tab').forEach(function (tab) {
-    tab.addEventListener('click', function () {
-      document.querySelectorAll('.scenario-tab').forEach(t => t.classList.remove('active'));
-      this.classList.add('active');
-      cropScenario = this.dataset.scenario;
-      cropStorePresetId = null;
-      cropOutputW = 0;
-      cropOutputH = 0;
-      if (cropScenario === 'idphoto') {
-        ratioButtons.hidden = false;
-        storePresets.hidden = true;
-        document.querySelector('.ratio-btn[data-ratio="1:1"]')?.classList.add('active');
-        document.querySelectorAll('.ratio-btn').forEach(b => { if (b.dataset.ratio !== '1:1') b.classList.remove('active'); });
-      } else {
-        ratioButtons.hidden = true;
-        storePresets.hidden = false;
-        if (typeof getAllStorePresets === 'function') {
-          storePresetGroup.innerHTML = '';
-          getAllStorePresets().forEach(function (p) {
-            const btn = document.createElement('button');
-            btn.type = 'button';
-            btn.className = 'store-preset-btn';
-            btn.dataset.id = p.id;
-            btn.innerHTML = '<span class="preset-name">' + p.name + '</span><span class="preset-size">' + p.w + '×' + p.h + '</span>';
-            btn.addEventListener('click', function () {
-              document.querySelectorAll('.store-preset-btn').forEach(b => b.classList.remove('active'));
-              this.classList.add('active');
-              cropStorePresetId = p.id;
-              cropOutputW = p.w;
-              cropOutputH = p.h;
-              updateCropBox();
-            });
-            storePresetGroup.appendChild(btn);
-          });
-          const first = storePresetGroup.querySelector('.store-preset-btn');
-          if (first) {
-            first.classList.add('active');
-            cropStorePresetId = first.dataset.id;
-            const p = getStorePreset(cropStorePresetId);
-            if (p) { cropOutputW = p.w; cropOutputH = p.h; }
-          }
-        }
-      }
-      updateCropBox();
-    });
-  });
-
   cropUploadZone.addEventListener('click', () => cropFileInput.click());
   cropFileInput.addEventListener('change', function () {
     const f = this.files[0];
@@ -313,40 +244,8 @@
       cropUploadSection.hidden = true;
       cropEditorSection.hidden = false;
       cropResultSection.hidden = true;
-      if (cropScenario === 'idphoto') {
-        ratioButtons.hidden = false;
-        storePresets.hidden = true;
-        document.querySelectorAll('.ratio-btn').forEach(b => b.classList.remove('active'));
-        document.querySelector('.ratio-btn[data-ratio="1:1"]')?.classList.add('active');
-      } else {
-        ratioButtons.hidden = true;
-        storePresets.hidden = false;
-        if (typeof getAllStorePresets === 'function' && storePresetGroup.children.length === 0) {
-          getAllStorePresets().forEach(function (p) {
-            const btn = document.createElement('button');
-            btn.type = 'button';
-            btn.className = 'store-preset-btn';
-            btn.dataset.id = p.id;
-            btn.innerHTML = '<span class="preset-name">' + p.name + '</span><span class="preset-size">' + p.w + '×' + p.h + '</span>';
-            btn.addEventListener('click', function () {
-              document.querySelectorAll('.store-preset-btn').forEach(b => b.classList.remove('active'));
-              this.classList.add('active');
-              cropStorePresetId = p.id;
-              cropOutputW = p.w;
-              cropOutputH = p.h;
-              updateCropBox();
-            });
-            storePresetGroup.appendChild(btn);
-          });
-          const first = storePresetGroup.querySelector('.store-preset-btn');
-          if (first) {
-            first.classList.add('active');
-            cropStorePresetId = first.dataset.id;
-            const p = getStorePreset(cropStorePresetId);
-            if (p) { cropOutputW = p.w; cropOutputH = p.h; }
-          }
-        }
-      }
+      document.querySelectorAll('.ratio-btn').forEach(b => b.classList.remove('active'));
+      document.querySelector('.ratio-btn[data-ratio="1:1"]')?.classList.add('active');
       updateCropBox();
     };
     img.src = URL.createObjectURL(f);
@@ -422,12 +321,8 @@
   cropReUploadBtn.addEventListener('click', resetCrop);
   cropDownloadBtn.addEventListener('click', function () {
     if (!cropResultBlob || !cropFile) return;
-    const ext = (cropScenario === 'store') ? '.png' : (/jpe?g/i.test(cropFile.type) ? '.jpg' : '.png');
-    let name = cropFile.name.replace(/\.[^.]+$/, '') + '_cropped';
-    if (cropStorePresetId && typeof getStorePreset === 'function') {
-      const p = getStorePreset(cropStorePresetId);
-      if (p) name += '_' + p.w + 'x' + p.h;
-    }
+    const ext = /jpe?g/i.test(cropFile.type) ? '.jpg' : '.png';
+    const name = cropFile.name.replace(/\.[^.]+$/, '') + '_cropped';
     downloadBlobAsFile(cropResultBlob, name + ext);
   });
 

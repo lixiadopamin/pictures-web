@@ -111,44 +111,6 @@
   box-shadow: 0 0 0 2px rgba(0, 113, 227, 0.3);
 }
 
-/* 证件照·图标 */
-.idphoto-tabs {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 20px;
-}
-
-.idphoto-content .upload-section,
-.favicon-content .upload-section {
-  margin-bottom: 20px;
-}
-
-.bg-color-btns {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.bg-color-btn {
-  width: 36px;
-  height: 36px;
-  border: 2px solid var(--color-border);
-  border-radius: 50%;
-  cursor: pointer;
-  transition: transform var(--transition-fast);
-}
-
-.bg-color-btn.active {
-  border-color: var(--color-primary);
-  transform: scale(1.1);
-}
-
-.favicon-size-btns {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
 @media (max-width: 900px) {
   .listing-panel .listing-layout {
     grid-template-columns: 1fr;

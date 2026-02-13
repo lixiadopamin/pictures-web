@@ -1,64 +1,61 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
+import JSZip from 'jszip';
 
-/** 6 款清淡纹理背景 URL（可替换为自有资源） */
-const BACKGROUND_URLS = [
-  'https://images.unsplash.com/photo-1557682250-33bd709cbe85?w=800&q=80',
-  'https://images.unsplash.com/photo-1557682224-5b8590cd9ec5?w=800&q=80',
-  'https://images.unsplash.com/photo-1579546929662-711aa81148cf?w=800&q=80',
-  'https://images.unsplash.com/photo-1614850523011-8b3b1e3c8c1f?w=800&q=80',
-  'https://images.unsplash.com/photo-1557682260-96773eb01377?w=800&q=80',
-  'https://images.unsplash.com/photo-1557682259-c2c1f2d3d4e5?w=800&q=80',
+/**
+ * 上架图三层架构：背景层 + 样机层 + 文案层
+ * 1. 背景层：6 款浅色渐变
+ * 2. 样机层：iPhone 16 / 华为 60 Pro
+ * 3. 文案层：大标题 24px，小标题 18px（按画布比例缩放）
+ */
+
+/** 6 款浅色渐变背景（默认） */
+const BACKGROUND_GRADIENTS = [
+  { from: '#f8f9fa', to: '#e9ecef', angle: 135, name: '浅灰' },
+  { from: '#e3f2fd', to: '#bbdefb', angle: 180, name: '淡蓝' },
+  { from: '#fce4ec', to: '#f8bbd9', angle: 90, name: '浅粉' },
+  { from: '#e8f5e9', to: '#c8e6c9', angle: 0, name: '淡绿' },
+  { from: '#fff3e0', to: '#ffe0b2', angle: 45, name: '浅橙' },
+  { from: '#f3e5f5', to: '#e1bee7', angle: 135, name: '淡紫' },
 ];
 
-/** 清淡纯色/渐变备选（图片加载失败时） */
-const BACKGROUND_FALLBACKS = [
-  { type: 'gradient', from: '#f8f9fa', to: '#e9ecef', angle: 135 },
-  { type: 'gradient', from: '#e3f2fd', to: '#bbdefb', angle: 180 },
-  { type: 'gradient', from: '#fce4ec', to: '#f8bbd9', angle: 90 },
-  { type: 'solid', color: '#f5f5f5' },
-  { type: 'solid', color: '#fafafa' },
-  { type: 'gradient', from: '#e8f5e9', to: '#c8e6c9', angle: 0 },
-];
-
-/** 设备样机配置：屏幕区域相对比例 + 样机原始宽高（保持比例不被拉伸） */
+/** 样机配置：2 款默认（iPhone 16 + 华为 60 Pro） */
 const MOCKUP_CONFIG = {
-  iphone: {
+  'iphone-16': {
     png: '/mockup-iphone15.png',
     svg: '/mockup-iphone15.svg',
+    name: 'iPhone 16',
     mockupSize: { w: 390, h: 844 },
     screenRect: { x: 26 / 390, y: 58 / 844, w: 338 / 390, h: 732 / 844 },
     screenRatio: 1170 / 2532,
   },
-  ipad: {
-    png: '/mockup-ipad.png',
-    svg: '/mockup-ipad.svg',
-    mockupSize: { w: 768, h: 1024 },
-    screenRect: { x: 48 / 768, y: 52 / 1024, w: 672 / 768, h: 920 / 1024 },
-    screenRatio: 2048 / 2732,
-  },
-  android: {
+  'huawei-60-pro': {
     png: '/mockup-android.png',
     svg: '/mockup-android.svg',
+    name: '华为 60 Pro',
     mockupSize: { w: 360, h: 800 },
     screenRect: { x: 28 / 360, y: 52 / 800, w: 304 / 360, h: 696 / 800 },
     screenRatio: 1080 / 2400,
   },
 };
 
-/** 导出尺寸 */
+/** 文案层字体大小（基准 600px 画布宽） */
+const TITLE_FONT_SIZE = 24;
+const SUBTITLE_FONT_SIZE = 18;
+
+/** 根据编辑图片自动生成的 6 个必传尺寸 */
 const EXPORT_SIZES = [
-  { key: '6.7', w: 1290, h: 2796, name: '6.7 寸' },
-  { key: '5.5', w: 1242, h: 2208, name: '5.5 寸' },
+  { key: '1290x2796', w: 1290, h: 2796 },
+  { key: '1284x2778', w: 1284, h: 2778 },
+  { key: '1179x2556', w: 1179, h: 2556 },
+  { key: '1170x2532', w: 1170, h: 2532 },
+  { key: '1242x2208', w: 1242, h: 2208 },
+  { key: '750x1334', w: 750, h: 1334 },
 ];
 
-/** 平台与设备选项 */
-const PLATFORM_OPTIONS = [
-  { key: 'apple', label: '苹果' },
-  { key: 'android', label: '安卓' },
-];
-const APPLE_DEVICES = [
-  { key: 'iphone', label: 'iPhone' },
-  { key: 'ipad', label: 'iPad' },
+/** 样机选项（2 款默认） */
+const DEVICE_OPTIONS = [
+  { key: 'iphone-16', label: 'iPhone 16' },
+  { key: 'huawei-60-pro', label: '华为 60 Pro' },
 ];
 
 export default function ListingGenerator() {
@@ -67,33 +64,17 @@ export default function ListingGenerator() {
   const [title, setTitle] = useState('');
   const [subtitle, setSubtitle] = useState('');
   const [bgIndex, setBgIndex] = useState(0);
-  const [platform, setPlatform] = useState('apple');
-  const [device, setDevice] = useState('iphone');
+  const [device, setDevice] = useState('iphone-16');
   const [screenshots, setScreenshots] = useState([]);
   const [selectedScreenshotIndex, setSelectedScreenshotIndex] = useState(0);
-  const [bgImages, setBgImages] = useState([]);
   const [mockupImg, setMockupImg] = useState(null);
 
-  const currentDevice = platform === 'apple'
-    ? (device === 'ipad' ? 'ipad' : 'iphone')
-    : 'android';
-  const mockupCfg = MOCKUP_CONFIG[currentDevice];
+  const mockupCfg = MOCKUP_CONFIG[device] || MOCKUP_CONFIG['iphone-16'];
   const safeIndex = Math.min(selectedScreenshotIndex, Math.max(0, screenshots.length - 1));
   const currentScreenshot = screenshots[safeIndex]?.img ?? null;
 
   const renderWidth = 600;
   const renderHeight = 1200;
-
-  /** 加载 6 款背景图 */
-  useEffect(() => {
-    const imgs = BACKGROUND_URLS.map((url) => {
-      const img = new Image();
-      img.crossOrigin = 'anonymous';
-      img.src = url;
-      return img;
-    });
-    setBgImages(imgs);
-  }, []);
 
   /** 按设备加载样机壳子图 */
   useEffect(() => {
@@ -105,28 +86,20 @@ export default function ListingGenerator() {
     };
     img.onload = () => setMockupImg(img);
     img.src = cfg.png;
-  }, [currentDevice]);
+  }, [device]);
 
+  /** 1. 背景层：绘制浅色渐变 */
   const drawBackground = useCallback((ctx, cw, ch, index) => {
-    const bgImg = bgImages[index];
-    const fallback = BACKGROUND_FALLBACKS[index];
-    if (bgImg?.complete && bgImg.naturalWidth > 0) {
-      ctx.drawImage(bgImg, 0, 0, cw, ch);
-    } else {
-      if (fallback.type === 'gradient') {
-        const angle = (fallback.angle || 0) * Math.PI / 180;
-        const dx = Math.cos(angle) * cw;
-        const dy = Math.sin(angle) * ch;
-        const g = ctx.createLinearGradient(0, 0, dx, dy);
-        g.addColorStop(0, fallback.from);
-        g.addColorStop(1, fallback.to);
-        ctx.fillStyle = g;
-      } else {
-        ctx.fillStyle = fallback.color || '#fff';
-      }
-      ctx.fillRect(0, 0, cw, ch);
-    }
-  }, [bgImages]);
+    const grad = BACKGROUND_GRADIENTS[index] || BACKGROUND_GRADIENTS[0];
+    const angle = (grad.angle || 0) * Math.PI / 180;
+    const dx = Math.cos(angle) * cw;
+    const dy = Math.sin(angle) * ch;
+    const g = ctx.createLinearGradient(0, 0, dx, dy);
+    g.addColorStop(0, grad.from);
+    g.addColorStop(1, grad.to);
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, cw, ch);
+  }, []);
 
   const drawScreenshotCover = useCallback((ctx, img, destRect, screenRatio) => {
     if (!img?.complete) return;
@@ -193,20 +166,23 @@ export default function ListingGenerator() {
       ctx.stroke();
     }
 
-    /* 4. 顶部文字层 */
+    /* 3. 文案层：大标题 24px，小标题 18px（按画布比例缩放） */
     if (title || subtitle) {
       ctx.save();
       ctx.textAlign = 'center';
-      const fontSize = Math.min(cw, ch) * 0.045;
-      ctx.font = `bold ${fontSize}px system-ui, sans-serif`;
+      const scale = cw / 600;
+      const titleSize = TITLE_FONT_SIZE * scale;
+      const subtitleSize = SUBTITLE_FONT_SIZE * scale;
+      const textY = ch * 0.06;
+      ctx.font = `bold ${titleSize}px system-ui, sans-serif`;
       ctx.fillStyle = '#1d1d1f';
-      ctx.fillText(title, cw / 2, ch * 0.06);
-      ctx.font = `${fontSize * 0.5}px system-ui, sans-serif`;
+      ctx.fillText(title, cw / 2, textY);
+      ctx.font = `${subtitleSize}px system-ui, sans-serif`;
       ctx.fillStyle = '#6e6e73';
-      ctx.fillText(subtitle, cw / 2, ch * 0.06 + fontSize + 8);
+      ctx.fillText(subtitle, cw / 2, textY + titleSize + 8);
       ctx.restore();
     }
-  }, [bgIndex, currentScreenshot, mockupImg, title, subtitle, currentDevice, mockupCfg, drawBackground, drawScreenshotCover]);
+  }, [bgIndex, currentScreenshot, mockupImg, title, subtitle, device, mockupCfg, drawBackground, drawScreenshotCover]);
 
   useEffect(() => {
     render();
@@ -250,22 +226,15 @@ export default function ListingGenerator() {
       h: frameH * sr.h,
     };
 
-    const bgImg = bgImages[bgIndex];
-    const fallback = BACKGROUND_FALLBACKS[bgIndex];
-    if (bgImg?.complete && bgImg.naturalWidth > 0) {
-      ctx.drawImage(bgImg, 0, 0, w, h);
-    } else {
-      if (fallback.type === 'gradient') {
-        const angle = (fallback.angle || 0) * Math.PI / 180;
-        const dx = Math.cos(angle) * w;
-        const dy = Math.sin(angle) * h;
-        const g = ctx.createLinearGradient(0, 0, dx, dy);
-        g.addColorStop(0, fallback.from);
-        g.addColorStop(1, fallback.to);
-        ctx.fillStyle = g;
-      } else ctx.fillStyle = fallback.color || '#fff';
-      ctx.fillRect(0, 0, w, h);
-    }
+    const grad = BACKGROUND_GRADIENTS[bgIndex] || BACKGROUND_GRADIENTS[0];
+    const angle = (grad.angle || 0) * Math.PI / 180;
+    const dx = Math.cos(angle) * w;
+    const dy = Math.sin(angle) * h;
+    const g = ctx.createLinearGradient(0, 0, dx, dy);
+    g.addColorStop(0, grad.from);
+    g.addColorStop(1, grad.to);
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, w, h);
 
     const scr = currentScreenshot;
     if (scr) {
@@ -292,28 +261,34 @@ export default function ListingGenerator() {
 
     if (title || subtitle) {
       ctx.textAlign = 'center';
-      const fs = Math.min(w, h) * 0.045;
-      ctx.font = `bold ${fs}px system-ui`;
+      const scale = w / 600;
+      const titleSize = TITLE_FONT_SIZE * scale;
+      const subtitleSize = SUBTITLE_FONT_SIZE * scale;
+      const textY = h * 0.06;
+      ctx.font = `bold ${titleSize}px system-ui`;
       ctx.fillStyle = '#1d1d1f';
-      ctx.fillText(title, w / 2, h * 0.06);
-      ctx.font = `${fs * 0.5}px system-ui`;
+      ctx.fillText(title, w / 2, textY);
+      ctx.font = `${subtitleSize}px system-ui`;
       ctx.fillStyle = '#6e6e73';
-      ctx.fillText(subtitle, w / 2, h * 0.06 + fs + 8);
+      ctx.fillText(subtitle, w / 2, textY + titleSize + 8);
     }
     return c;
   };
 
-  const handleBatchExport = () => {
-    EXPORT_SIZES.forEach(({ key, w, h, name }) => {
+  const handleBatchExport = async () => {
+    const zip = new JSZip();
+    const folder = zip.folder('app-store-screenshots');
+    for (const { key, w, h } of EXPORT_SIZES) {
       const c = exportAtSize(w, h);
-      c.toBlob((blob) => {
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = `listing_${key}_${w}x${h}.png`;
-        a.click();
-        URL.revokeObjectURL(a.href);
-      }, 'image/png', 1);
-    });
+      const blob = await new Promise((res) => c.toBlob(res, 'image/png', 1));
+      folder.file(`${key}.png`, blob);
+    }
+    const zipBlob = await zip.generateAsync({ type: 'blob' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(zipBlob);
+    a.download = `app-store-screenshots_${Date.now()}.zip`;
+    a.click();
+    URL.revokeObjectURL(a.href);
   };
 
   const handleFaviconExport = () => {
@@ -341,7 +316,7 @@ export default function ListingGenerator() {
           <h3 className="font-semibold text-gray-800">上架图生成器</h3>
 
           <div>
-            <label className="block text-sm text-gray-600 mb-1">主标题</label>
+            <label className="block text-sm text-gray-600 mb-1">文案层 · 大标题（24px）</label>
             <input
               type="text"
               value={title}
@@ -352,7 +327,7 @@ export default function ListingGenerator() {
             />
           </div>
           <div>
-            <label className="block text-sm text-gray-600 mb-1">副标题</label>
+            <label className="block text-sm text-gray-600 mb-1">文案层 · 小标题（18px）</label>
             <input
               type="text"
               value={subtitle}
@@ -364,9 +339,9 @@ export default function ListingGenerator() {
           </div>
 
           <div>
-            <label className="block text-sm text-gray-600 mb-2">背景（6 款）</label>
+            <label className="block text-sm text-gray-600 mb-2">背景层（6 款浅色渐变）</label>
             <div className="grid grid-cols-3 gap-2">
-              {BACKGROUND_URLS.map((_, i) => (
+              {BACKGROUND_GRADIENTS.map((g, i) => (
                 <button
                   key={i}
                   onClick={() => setBgIndex(i)}
@@ -376,26 +351,23 @@ export default function ListingGenerator() {
                       : 'border-gray-200 hover:border-gray-300'
                   }`}
                   style={{
-                    background: bgImages[i]?.complete
-                      ? `url(${BACKGROUND_URLS[i]}) center/cover`
-                      : BACKGROUND_FALLBACKS[i].type === 'gradient'
-                      ? `linear-gradient(${BACKGROUND_FALLBACKS[i].angle}deg, ${BACKGROUND_FALLBACKS[i].from}, ${BACKGROUND_FALLBACKS[i].to})`
-                      : BACKGROUND_FALLBACKS[i].color,
+                    background: `linear-gradient(${g.angle}deg, ${g.from}, ${g.to})`,
                   }}
+                  title={g.name}
                 />
               ))}
             </div>
           </div>
 
           <div>
-            <label className="block text-sm text-gray-600 mb-1">平台</label>
-            <div className="flex gap-2 mb-2">
-              {PLATFORM_OPTIONS.map(({ key, label }) => (
+            <label className="block text-sm text-gray-600 mb-1">样机层</label>
+            <div className="flex gap-2">
+              {DEVICE_OPTIONS.map(({ key, label }) => (
                 <button
                   key={key}
-                  onClick={() => setPlatform(key)}
+                  onClick={() => setDevice(key)}
                   className={`flex-1 py-1.5 rounded text-sm font-medium border ${
-                    platform === key ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-gray-200 hover:border-gray-300'
+                    device === key ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-gray-200 hover:border-gray-300'
                   }`}
                 >
                   {label}
@@ -403,25 +375,6 @@ export default function ListingGenerator() {
               ))}
             </div>
           </div>
-
-          {platform === 'apple' && (
-            <div>
-              <label className="block text-sm text-gray-600 mb-1">设备</label>
-              <div className="flex gap-2">
-                {APPLE_DEVICES.map(({ key, label }) => (
-                  <button
-                    key={key}
-                    onClick={() => setDevice(key)}
-                    className={`flex-1 py-1.5 rounded text-sm font-medium border ${
-                      device === key ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-gray-200 hover:border-gray-300'
-                    }`}
-                  >
-                    {label}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
 
           <div>
             <label className="block text-sm text-gray-600 mb-1">App 截图</label>
@@ -524,7 +477,7 @@ export default function ListingGenerator() {
               onClick={handleBatchExport}
               className="w-full py-2.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700"
             >
-              批量导出（6.7 寸 + 5.5 寸）
+              批量导出（6 个尺寸压缩包）
             </button>
             <button
               onClick={handleFaviconExport}

@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="图片工具箱 - 上架图生成、样机生成、证件照换底、图片裁剪压缩、ico转换，App Store/Google Play 上架图一键生成">
-  <title>图片工具箱 - 上架图生成·样机·证件照换底·裁剪压缩·ico转换</title>
+  <meta name="description" content="图片工具箱 - 上架图生成、样机、图片裁剪压缩、格式转换、拼图">
+  <title>图片工具箱 - 上架图·裁剪·压缩·转换·拼图</title>
   <style>
     body.in-iframe .app-header,
     body.in-iframe .module-nav { display: none !important; }
@@ -34,7 +34,7 @@
       <button type="button" class="module-card" data-module="crop" aria-pressed="false">
         <span class="module-icon" aria-hidden="true">✂️</span>
         <span class="module-name">图片裁剪</span>
-        <span class="module-desc">裁切·比例·证件照</span>
+        <span class="module-desc">裁切·比例</span>
       </button>
       <button type="button" class="module-card active" data-module="compress" aria-pressed="true">
         <span class="module-icon" aria-hidden="true">🗜️</span>
@@ -56,11 +56,6 @@
         <span class="module-name">上架图生成</span>
         <span class="module-desc">样机·文案·App Store</span>
       </button>
-      <button type="button" class="module-card" data-module="idphoto" aria-pressed="false">
-        <span class="module-icon" aria-hidden="true">🪪</span>
-        <span class="module-name">证件照·图标</span>
-        <span class="module-desc">换底·一寸二寸·Favicon</span>
-      </button>
     </nav>
 
     <!-- 模块内容区：根据选中的模块显示对应内容 -->
@@ -81,10 +76,6 @@
           </div>
         </section>
         <section class="crop-editor" id="cropEditorSection" hidden>
-          <div class="crop-scenario-tabs">
-            <button type="button" class="scenario-tab active" data-scenario="idphoto">证件照 / 比例</button>
-            <button type="button" class="scenario-tab" data-scenario="store">应用商店</button>
-          </div>
           <div class="ratio-buttons" id="ratioButtons">
             <span class="control-label">裁剪比例</span>
             <div class="ratio-group">
@@ -96,10 +87,6 @@
               <button type="button" class="ratio-btn" data-ratio="9:16">9:16</button>
               <button type="button" class="ratio-btn" data-ratio="16:9">16:9</button>
             </div>
-          </div>
-          <div class="store-presets" id="storePresets" hidden>
-            <span class="control-label">常用尺寸（iOS / 安卓）</span>
-            <div class="store-preset-group" id="storePresetGroup"></div>
           </div>
           <div class="crop-canvas-wrap">
             <canvas id="cropCanvas"></canvas>
@@ -335,75 +322,13 @@
         </div>
       </section>
 
-      <!-- 模块：证件照·图标 -->
-      <section class="module-panel" id="panelIdphoto" data-module="idphoto" hidden>
-        <div class="idphoto-tabs">
-          <button type="button" class="scenario-tab active" data-tab="idphoto">证件照换底</button>
-          <button type="button" class="scenario-tab" data-tab="favicon">Favicon / 图标</button>
-        </div>
-        <div class="idphoto-content" id="idphotoTabContent">
-          <section class="idphoto-bg-section" id="idphotoBgSection">
-            <div class="upload-section">
-              <div class="upload-zone" id="idphotoUploadZone">
-                <p class="upload-hint">上传证件照（一寸/二寸）</p>
-                <p class="upload-formats">支持 PNG、JPG</p>
-                <input type="file" id="idphotoFileInput" accept="image/*" hidden>
-              </div>
-            </div>
-            <div class="idphoto-controls" id="idphotoControls" hidden>
-              <div class="control-group">
-                <label class="control-label">尺寸</label>
-                <div class="ratio-group">
-                  <button type="button" class="size-btn active" data-size="1inch">一寸</button>
-                  <button type="button" class="size-btn" data-size="2inch">二寸</button>
-                </div>
-              </div>
-              <div class="control-group">
-                <label class="control-label">背景色</label>
-                <div class="bg-color-btns" id="idphotoBgColors"></div>
-              </div>
-              <div class="preview-image-wrap">
-                <canvas id="idphotoCanvas"></canvas>
-              </div>
-              <button type="button" class="btn btn-download" id="idphotoDownloadBtn">下载</button>
-            </div>
-          </section>
-        </div>
-        <div class="favicon-content" id="faviconTabContent" hidden>
-          <div class="upload-section">
-            <div class="upload-zone" id="faviconUploadZone">
-              <p class="upload-hint">上传图标生成 Favicon / Windows Tile</p>
-              <input type="file" id="faviconFileInput" accept="image/*" hidden>
-            </div>
-          </div>
-          <div class="favicon-controls" id="faviconControls" hidden>
-            <div class="control-group">
-              <label class="control-label">输出尺寸</label>
-              <div class="favicon-size-btns">
-                <button type="button" class="format-btn" data-size="16">16×16</button>
-                <button type="button" class="format-btn active" data-size="32">32×32</button>
-                <button type="button" class="format-btn" data-size="150">Tile 150</button>
-                <button type="button" class="format-btn" data-size="310">Tile 310</button>
-              </div>
-            </div>
-            <div class="preview-image-wrap">
-              <canvas id="faviconCanvas"></canvas>
-            </div>
-            <button type="button" class="btn btn-download" id="faviconDownloadBtn">下载</button>
-          </div>
-        </div>
-      </section>
-
     </div>
 
   </main>
 
-  <script src="/store-presets.js"></script>
   <script src="/listing-state.js"></script>
   <script src="/listing-render.js"></script>
   <script src="/listing-ui.js"></script>
-  <script src="/idphoto-bg.js"></script>
-  <script src="/idphoto-favicon-ui.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   <script>

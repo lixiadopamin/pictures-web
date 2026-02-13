@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 768 1024">
+  <defs>
+    <linearGradient id="ipad-fg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0" stop-color="#2c2c2e"/>
+      <stop offset="1" stop-color="#1c1c1e"/>
+    </linearGradient>
+  </defs>
+  <!-- iPad Ò¹FOU:ßBz -->
+  <path fill="url(#ipad-fg)" fill-rule="evenodd" stroke="#3a3a3c" stroke-width="2" d="
+    M 40 24 L 728 24 Q 768 24 768 64 L 768 960 Q 768 1000 728 1000 L 40 1000 Q 0 1000 0 960 L 0 64 Q 0 24 40 24 Z
+    M 48 52 L 720 52 L 720 972 L 48 972 Z
+  "/>
+</svg>
