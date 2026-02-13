@@ -4,9 +4,11 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "npm install && npx vite build",
-    "preview": "vite preview"
+ "scripts": {
+  "dev": "vite",
+  "build": "npm install && npx vite build",
+  "preview": "vite preview"
+}
   },
   "dependencies": {
     "antd": "^5.20.0",
